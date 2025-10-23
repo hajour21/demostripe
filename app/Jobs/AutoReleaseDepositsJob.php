@@ -1,44 +1,40 @@
 <?php
-// app/Jobs/AutoReleaseDepositsJob.php
+
 namespace App\Jobs;
 
+use App\Models\Deposit;
+use App\Services\StripeDepositService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Deposit;
-use App\Services\StripeDepositService;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AutoReleaseDepositsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(StripeDepositService $stripeService)
+    public function handle(StripeDepositService $stripeService): void
     {
-        $depositsToRelease = Deposit::where('status', 'authorized')
+        $deposits = Deposit::where('status', 'authorized')
             ->whereHas('booking', function ($query) {
                 $query->where('check_out_at', '<', now()->subDay());
             })
             ->get();
 
-        foreach ($depositsToRelease as $deposit) {
+        foreach ($deposits as $deposit) {
             try {
-                Log::info('Auto-releasing deposit', ['deposit_id' => $deposit->id]);
-                
-                $stripeService->release($deposit->stripe_payment_intent_id);
-                $deposit->update([
-                    'status' => 'released',
-                    'released_at' => now()
-                ]);
-                
-                Log::info('Deposit auto-released', ['deposit_id' => $deposit->id]);
+                DB::transaction(function () use ($deposit, $stripeService) {
+                    $stripeService->release($deposit->stripe_payment_intent_id);
+                    
+                    $deposit->update([
+                        'status' => 'released',
+                        'released_at' => now(),
+                    ]);
+                });
             } catch (\Exception $e) {
-                Log::error('Failed to auto-release deposit', [
-                    'deposit_id' => $deposit->id,
-                    'error' => $e->getMessage()
-                ]);
+                logger()->error("Auto-release failed for deposit {$deposit->id}: " . $e->getMessage());
             }
         }
     }

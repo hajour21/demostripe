@@ -1,30 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DepositController;
-use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\DemoController;
-use App\Models\Booking;
+use Illuminate\Support\Facades\Route;
 
-// Route d'accueil
 Route::get('/', function () {
-    return redirect('/demo/bookings');
+    return redirect()->route('demo.bookings');
 });
 
-// Routes de démonstration
+// Routes démo
 Route::get('/demo/bookings', [DemoController::class, 'bookings'])->name('demo.bookings');
 Route::get('/demo/checkout/{booking}', [DemoController::class, 'checkout'])->name('demo.checkout');
-Route::post('/demo/process-payment/{booking}', [DemoController::class, 'processPayment'])->name('demo.process-payment');
+Route::post('/demo/checkout/{booking}', [DemoController::class, 'processCheckout'])->name('demo.process-checkout');
+Route::post('/demo/release/{booking}', [DemoController::class, 'releaseDeposit'])->name('demo.release');
+Route::post('/demo/capture/{booking}', [DemoController::class, 'captureDeposit'])->name('demo.capture');
 
-// Routes API
-Route::prefix('api')->group(function () {
-    Route::post('/deposits/authorize', [DepositController::class, 'authorizeDeposit']);
-    Route::post('/deposits/release', [DepositController::class, 'release']);
-    Route::post('/deposits/capture', [DepositController::class, 'capture']);
+// Route de test
+Route::get('/test', function () {
+    return response()->json(['message' => 'Laravel is working!']);
 });
-// Ajoutez cette route
-Route::get('/booking/confirmation/{booking}', function (Booking $booking) {
-    return view('booking.confirmation', compact('booking'));
-})->name('booking.confirmation');
-// Webhook Stripe (doit être en POST)
-Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);

@@ -15,7 +15,7 @@ class BookingSeeder extends Seeder
             'check_in_at' => now()->addDays(2),
             'check_out_at' => now()->addDays(5),
             'deposit_amount_cents' => 30000,
-            'status' => 'pending',
+            'status' => 'confirmed',
         ]);
 
         Booking::create([
@@ -24,7 +24,7 @@ class BookingSeeder extends Seeder
             'check_in_at' => now()->addDays(2),
             'check_out_at' => now()->addDays(4),
             'deposit_amount_cents' => 50000,
-            'status' => 'pending',
+            'status' => 'confirmed',
         ]);
 
         Booking::create([
@@ -33,7 +33,7 @@ class BookingSeeder extends Seeder
             'check_in_at' => now()->addDays(1),
             'check_out_at' => now()->addDays(3),
             'deposit_amount_cents' => 20000,
-            'status' => 'pending',
+            'status' => 'completed',
         ]);
     }
 }

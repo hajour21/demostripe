@@ -7,6 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class WebhookEvent extends Model
 {
-    protected $fillable = ['type', 'payload_json', 'processed_at', 'related_payment_intent_id', 'status'];
-    protected $casts = ['processed_at' => 'datetime'];
+    use HasFactory;
+
+    protected $fillable = [
+        'type',
+        'payload_json',
+        'processed_at',
+        'related_payment_intent_id',
+        'status',
+    ];
+
+    protected $casts = [
+        'payload_json' => 'array',
+        'processed_at' => 'datetime',
+    ];
 }
